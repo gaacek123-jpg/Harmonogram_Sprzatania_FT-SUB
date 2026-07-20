@@ -1,6 +1,10 @@
 # Plan dyżurów · STREFA FT / SUB
 
-Aplikacja do układania harmonogramu sprzątania dla brygady. Jeden plik: `index.html`.
+Aplikacja do układania harmonogramu sprzątania dla brygady. Cała w jednym pliku:
+[`index.html`](index.html) — vanilla JS, bez builda, bez zależności.
+
+**Na żywo:** https://gaacek123-jpg.github.io/Harmonogram_Sprzatania_FT-SUB/
+Ten adres dostaje brygada. Dane są wspólne — każdy widzi ten sam plan.
 
 ## Tryby
 
@@ -13,47 +17,65 @@ Aplikacja do układania harmonogramu sprzątania dla brygady. Jeden plik: `index
   - **Obłożenie** — paski na ten tydzień + suma z całej historii,
   - ustawienia: brygada (z uprawnieniami na wózki), zadania (waga, liczba osób, częstotliwość, stała osoba, „razem z"), dni robocze, PIN, reset.
 
+**Motyw jasny / ciemny** — przełącznik w prawym górnym rogu (zapamiętywany, przy pierwszym
+wejściu dopasowuje się do ustawień systemu). Jasny w barwach FlexLink (czerwień + grafit),
+ciemny w różu/fiolecie na graficie.
+
 Rotacją steruje balans: suma wag z historii + obciążenie danego dnia + świeżość
 (kto robił zadanie niedawno, dostaje je później).
 
-## Krok 1 — działa od razu lokalnie
+## Dane i synchronizacja
 
-Otwórz `index.html` w przeglądarce. Dane trzymane są w localStorage tego urządzenia.
+- Wspólna baza to **Firebase Realtime Database** (projekt `plan-dyzurow`), dane pod kluczem `dyzury/state`.
+- Config jest wpisany w `index.html` (stała `FIREBASE_CONFIG`) — patrz sekcja *Bezpieczeństwo*.
+- Bez połączenia z siecią / bez configu aplikacja i tak działa **lokalnie** (localStorage tego urządzenia).
+- Zapis działa na zasadzie „ostatni wygrywa" — zakładamy jednego brygadzistę edytującego naraz.
 
-## Krok 2 — wspólna baza dla całej brygady (Firebase, darmowe)
+## Hosting i wdrażanie
 
-1. Wejdź na https://console.firebase.google.com i zaloguj się kontem Google.
-2. **Utwórz projekt** (nazwa dowolna, np. `plan-dyzurow`; Google Analytics można wyłączyć).
-3. W menu po lewej: **Build → Realtime Database → Create database**.
-   Lokalizacja: `europe-west1` (Belgia). Tryb: **locked mode** (zaraz zmienimy reguły).
-4. Zakładka **Rules** — wklej i opublikuj:
+Strona stoi na **GitHub Pages** z gałęzi `main` (folder główny repo). Publikacja jest automatyczna:
+
+```
+# po edycji index.html
+git add index.html
+git commit -m "opis zmiany"
+git push origin main
+```
+
+Po ~40–60 s nowa wersja jest pod tym samym adresem. Na telefonie warto zrobić twarde
+odświeżenie (Ctrl+F5), bo Pages potrafi chwilę trzymać starą wersję w cache.
+
+> Uwaga na dwa źródła zmian: jeśli edytujesz plik **przez stronę GitHuba**, a równolegle
+> ktoś pracuje **lokalnie**, wersje się rozjeżdżają i push wymaga scalenia (`git pull` najpierw).
+> Najczyściej: zmiany idą jedną drogą.
+
+## Bezpieczeństwo
+
+- **Klucz API Firebase w kodzie jest jawny z założenia** — tak działają webowe aplikacje Firebase,
+  klucz tylko wskazuje projekt, nie chroni danych. GitHub może go oznaczyć w „secret scanning";
+  to nie jest wyciek, klucza nie trzeba rotować (można zamknąć alert jako *Won't fix*).
+- Realnym dostępem steruje **reguły bazy**, które są świadomie **otwarte** (`.read`/`.write: true`).
+  Czyli każdy, kto zna adres bazy, może odczytać i nadpisać harmonogram. Dla tablicy dyżurów
+  (imiona/inicjały + zadania, zero danych wrażliwych) to akceptowalny kompromis. **Nie trzymaj tam
+  nic poufnego.** PIN brygadzisty to miękka blokada UI, nie zabezpieczenie.
+- Ewentualne utwardzenie (opcjonalne): ograniczenie klucza do domeny `gaacek123-jpg.github.io`
+  w Google Cloud, albo warunek przy zapisie w regułach bazy.
+
+## Odtworzenie bazy Firebase od zera (referencyjnie)
+
+Potrzebne tylko przy zakładaniu nowego projektu (np. inny właściciel bazy):
+
+1. https://console.firebase.google.com → **Utwórz projekt** (Analytics można wyłączyć).
+2. **Build → Realtime Database → Create database**, lokalizacja `europe-west1`, tryb *locked*.
+3. Zakładka **Rules** — wklej i opublikuj:
    ```json
-   {
-     "rules": {
-       "dyzury": { ".read": true, ".write": true }
-     }
-   }
+   { "rules": { "dyzury": { ".read": true, ".write": true } } }
    ```
-   Uwaga: to otwiera zapis każdemu, kto zna adres bazy — dla tablicy dyżurów to
-   akceptowalne (PIN w aplikacji to miękka blokada), ale nie trzymaj tam nic wrażliwego.
-5. Kliknij ikonę zębatki → **Project settings** → sekcja **Your apps** → dodaj
-   aplikację **Web** (`</>`), nazwa dowolna, bez hostingu.
-6. Skopiuj pokazany obiekt `firebaseConfig` i wklej go w `index.html`
-   w miejscu `const FIREBASE_CONFIG = null;` (na górze sekcji `<script>`).
-   Ważne: config musi zawierać pole `databaseURL` — jeśli go nie ma, skopiuj adres
-   bazy z zakładki Realtime Database (np. `https://plan-dyzurow-default-rtdb.europe-west1.firebasedatabase.app`).
-7. W stopce aplikacji pojawi się „Online · dane wspólne dla wszystkich".
+4. Zębatka → **Project settings → Your apps** → dodaj aplikację **Web** (`</>`), bez hostingu.
+5. Skopiuj `firebaseConfig` i wklej w `index.html` w miejsce stałej `FIREBASE_CONFIG`
+   (nazwa zmiennej musi zostać `FIREBASE_CONFIG`). Config musi mieć pole `databaseURL`.
+6. W stopce aplikacji pojawi się „Online · dane wspólne dla wszystkich".
 
-## Krok 3 — publikacja pod jednym adresem
+## Licencja
 
-Najprościej: **Netlify Drop** — https://app.netlify.com/drop — przeciągnij folder
-z `index.html` na stronę i dostajesz publiczny adres (np. `https://cos-tam.netlify.app`).
-Ten adres wysyłasz brygadzie. Po każdej zmianie pliku wrzucasz go ponownie.
-
-Alternatywy: GitHub Pages, Cloudflare Pages — też darmowe.
-
-## Uwagi
-
-- Zapis wygrywa „ostatni pisze" — zakładamy jednego brygadzistę edytującego naraz.
-- Konfig Firebase w pliku HTML jest jawny z założenia (tak działają aplikacje webowe
-  Firebase) — dostęp kontrolują reguły bazy, nie tajność konfigu.
+MIT — patrz [LICENSE](LICENSE).
