@@ -189,8 +189,14 @@
   .danger{color:var(--alert);border-color:var(--gap-line)}
   .foot{text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--steel-2);text-transform:uppercase;margin-top:18px;line-height:1.6}
 
-  .theme-toggle{position:fixed;top:10px;right:10px;z-index:50;width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line-strong);background:var(--surface);color:var(--ink);font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.16);transition:transform .12s,background .2s,border-color .2s}
-  .theme-toggle:active{transform:scale(.9)}
+  .theme-toggle{position:fixed;top:12px;right:12px;z-index:50;width:52px;height:28px;padding:0;border-radius:999px;border:1.5px solid var(--line-strong);background:var(--surface-2);cursor:pointer;box-shadow:inset 0 1px 2px rgba(0,0,0,.12);transition:background .2s,border-color .2s}
+  .theme-toggle .knob{position:absolute;top:50%;left:2px;transform:translateY(-50%);width:21px;height:21px;border-radius:50%;background:var(--amber);color:var(--on-accent);display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.35);transition:left .22s cubic-bezier(.4,.1,.3,1.3),background .2s}
+  :root[data-theme="dark"] .theme-toggle .knob{left:27px}
+  .theme-toggle .ic{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+  .theme-toggle .ic-moon{display:none}
+  :root[data-theme="dark"] .theme-toggle .ic-sun{display:none}
+  :root[data-theme="dark"] .theme-toggle .ic-moon{display:block}
+  .theme-toggle:active .knob{width:24px}
 
   @media print{
     /* druk zawsze jasny — nawet gdy ekran jest w trybie ciemnym */
@@ -215,7 +221,12 @@
 (function(){ try{ var t=localStorage.getItem("theme"); if(!t) t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"; document.documentElement.setAttribute("data-theme",t); }catch(e){} })();
 </script>
 
-<button id="themeToggle" class="theme-toggle" title="Motyw jasny / ciemny" aria-label="Przełącz motyw">🌙</button>
+<button id="themeToggle" class="theme-toggle" role="switch" title="Motyw jasny / ciemny" aria-label="Przełącz motyw">
+  <span class="knob">
+    <svg class="ic ic-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg>
+    <svg class="ic ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z"/></svg>
+  </span>
+</button>
 
 <div class="wrap">
   <header>
@@ -834,7 +845,7 @@ function init(){
 
   // motyw
   const tbtn=$("#themeToggle");
-  function paintTheme(){ const dark=document.documentElement.getAttribute("data-theme")==="dark"; tbtn.textContent=dark?"☀️":"🌙"; tbtn.title=dark?"Włącz tryb jasny":"Włącz tryb ciemny"; }
+  function paintTheme(){ const dark=document.documentElement.getAttribute("data-theme")==="dark"; tbtn.setAttribute("aria-checked",dark?"true":"false"); tbtn.title=dark?"Włącz tryb jasny":"Włącz tryb ciemny"; }
   paintTheme();
   tbtn.onclick=()=>{ const dark=document.documentElement.getAttribute("data-theme")==="dark"; const next=dark?"light":"dark"; document.documentElement.setAttribute("data-theme",next); try{ localStorage.setItem("theme",next); }catch(e){} paintTheme(); };
 
