@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="pl">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan dyżurów · STREDA FT / SUB</title>
+<style>
+  :root{
+    --bg:#d9dde0; --surface:#f3f5f6; --surface-2:#e9ecee;
+    --ink:#15181b; --ink-soft:#4b555c; --steel:#33424c; --steel-2:#5d6f7a;
+    --line:#bcc4c9; --line-strong:#8f9aa1;
+    --amber:#d99400; --amber-deep:#a86f00; --alu:#2f6e8f; --alert:#bf3a24; --rest:#8a949a;
+    --ok:#3d7a4a;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.45;-webkit-text-size-adjust:100%}
+  .wrap{max-width:680px;margin:0 auto;padding:14px 14px 60px}
+  header{margin-bottom:12px}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--steel-2);margin-bottom:4px}
+  h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em;text-transform:uppercase;line-height:1}
+  h1 span{color:var(--amber-deep)}
+  .modebar{display:flex;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:4px;margin:12px 0}
+  .modebar button{flex:1;border:0;background:transparent;font:inherit;font-weight:700;padding:9px 4px;border-radius:7px;cursor:pointer;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;font-size:12px}
+  .modebar button.on{background:var(--steel);color:#fff}
+
+  section{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;gap:8px}
+  .sec-title{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--steel)}
+  .sec-note{font-size:12px;color:var(--ink-soft)}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{display:inline-flex;align-items:center;gap:7px;border:1.5px solid var(--line-strong);background:var(--surface-2);border-radius:999px;padding:8px 13px;cursor:pointer;font-weight:600;font-size:14px;user-select:none;transition:.08s}
+  .chip:active{transform:scale(.97)}
+  .chip.pick.on{background:var(--alu);border-color:var(--alu);color:#fff}
+  .chip .lic{font-size:10px;font-family:var(--mono);letter-spacing:.06em;padding:1px 5px;border-radius:4px;background:#e7f0f5;color:var(--alu)}
+  .chip.on .lic{background:rgba(255,255,255,.16);color:#bfe0f0}
+
+  .btn{appearance:none;border:0;border-radius:10px;font:inherit;font-weight:700;cursor:pointer;padding:13px 16px;letter-spacing:.02em}
+  .btn-primary{background:var(--steel);color:#fff;font-size:15px;text-transform:uppercase;letter-spacing:.06em}
+  .btn-primary:active{background:#232f36}
+  .btn-amber{background:var(--amber);color:#221a00}
+  .btn-amber:active{background:var(--amber-deep);color:#fff}
+  .btn-ghost{background:transparent;border:1.5px solid var(--line-strong);color:var(--steel);padding:9px 12px;font-size:13px}
+  .btn-row{display:flex;gap:8px;margin-top:12px}
+  .btn-row .btn{flex:1}
+
+  .item{padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);margin-bottom:9px}
+  .item.fixed{background:#fbf3dc;border-color:#e8d091}
+  .item.gap{background:#f8e3de;border-color:#e3b3a7}
+  .item-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:9px}
+  .item-name{font-weight:700;font-size:15px}
+  .freq{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--steel-2);white-space:nowrap}
+  .slots{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+  .who-select{border:1.5px solid var(--line-strong);border-radius:8px;padding:8px 10px;font:inherit;font-weight:700;background:var(--surface);color:var(--ink);min-width:112px;max-width:100%}
+  .who-select.empty{border-color:var(--alert);color:var(--alert)}
+  .tag{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:5px}
+  .tag.sub{background:#f0e2c0;color:var(--amber-deep)}
+  .tag.lic{background:#e7f0f5;color:var(--alu)}
+  .tag.gap{background:#efc9bf;color:var(--alert)}
+  .tag.link{background:#e3e9d6;color:#5a6b3a}
+  .fell{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:11px;padding:10px;border:1px dashed var(--line-strong);border-radius:8px;background:var(--surface)}
+  .fell .lbl{font-size:12px;color:var(--ink-soft)}
+  .resting{margin-top:11px;font-size:13px;color:var(--rest)}
+  .resting b{color:var(--ink-soft)}
+  .empty{color:var(--ink-soft);font-size:14px;padding:6px 0}
+  .editbadge{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--amber-deep);background:#fbf3dc;border:1px solid #e8d091;border-radius:5px;padding:2px 7px}
+
+  .wcard{padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);margin-bottom:8px}
+  .wcard .wtask{font-weight:700}
+  .wcard .wmeta{font-size:13px;color:var(--ink-soft);margin-top:2px}
+  .wdate{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--steel-2);margin-bottom:6px}
+  .wgroup{margin-bottom:16px}.wgroup:last-child{margin-bottom:0}
+
+  /* week nav (shared) */
+  .week-controls{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+  .week-nav{display:flex;align-items:center;gap:8px}
+  .week-nav button{border:1.5px solid var(--line-strong);background:var(--surface);border-radius:8px;width:38px;height:38px;font-size:18px;font-weight:700;cursor:pointer;color:var(--steel)}
+  .week-range{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink)}
+  .refresh{background:transparent;border:1.5px solid var(--line-strong);border-radius:8px;padding:6px 10px;font:inherit;font-size:12px;font-weight:600;color:var(--steel);cursor:pointer}
+
+  /* dyspo grid */
+  .dg-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table.dg{border-collapse:collapse;width:100%;font-size:12px}
+  table.dg th,table.dg td{border:1px solid var(--line);padding:4px;text-align:center;vertical-align:middle}
+  table.dg thead th{background:var(--surface-2);font-family:var(--mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--steel);white-space:nowrap;padding:6px 4px}
+  table.dg td.nm{text-align:left;font-weight:700;font-size:13px;white-space:nowrap;padding:4px 8px;background:var(--surface-2)}
+  table.dg td.nm .lic{font-size:9px;font-family:var(--mono);color:var(--alu);margin-left:4px}
+  .dgc{width:100%;min-width:44px;min-height:38px;border:0;border-radius:6px;font-size:15px;font-weight:800;cursor:pointer;font-family:var(--mono)}
+  .dgc.on{background:#e0ead9;color:var(--ok)}
+  .dgc.off{background:#f4e0db;color:var(--alert)}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:4px;vertical-align:middle}
+  .dot.ok{background:var(--ok)} .dot.no{background:var(--line-strong)} .dot.warn{background:var(--alert)}
+
+  /* day list */
+  .day-line{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .day-line:last-child{border-bottom:0}
+  .day-line .dd{font-weight:700;font-size:14px}
+  .day-line .ds{font-size:12px;color:var(--ink-soft);font-family:var(--mono)}
+  .day-line .ds.warn{color:var(--alert);font-weight:700}
+  .day-line .btns{display:flex;gap:6px}
+  .day-line .btn{padding:7px 12px;font-size:13px}
+
+  /* load view */
+  .load-row{display:grid;grid-template-columns:92px 1fr 46px;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line)}
+  .load-row:last-child{border-bottom:0}
+  .load-name{font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .load-bar{height:14px;background:var(--surface-2);border:1px solid var(--line);border-radius:7px;overflow:hidden}
+  .load-bar i{display:block;height:100%;background:var(--amber);border-radius:6px}
+  .load-val{font-family:var(--mono);font-size:12px;color:var(--steel);text-align:right;white-space:nowrap}
+  .load-total{color:var(--rest)}
+
+  .ledger-row{display:grid;grid-template-columns:96px 1fr auto;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line)}
+  .ledger-row:last-child{border-bottom:0}
+  .ledger-name{font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tally{font-family:var(--mono);color:var(--amber-deep);font-size:15px;letter-spacing:1px;word-break:break-all;line-height:1.3}
+  .tally .rest0{color:var(--line-strong)}
+  .ledger-val{font-family:var(--mono);font-size:13px;color:var(--steel);text-align:right}
+
+  .plan-line{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .plan-line:last-child{border-bottom:0}
+  .plan-line .pd{font-weight:600}
+  .plan-line .pn{font-size:12px;color:var(--ink-soft);font-family:var(--mono)}
+
+  /* weekly table */
+  .week-actions{display:flex;gap:8px;margin-bottom:12px}
+  .week-actions .btn{flex:1;padding:10px}
+  .print-title{display:none}
+  .wk-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table.wk{border-collapse:collapse;width:100%;font-size:12px}
+  table.wk th,table.wk td{border:1px solid var(--line-strong);padding:6px 7px;vertical-align:top;text-align:left}
+  table.wk thead th{background:var(--steel);color:#fff;font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+  table.wk thead th.noplan{background:#8a949a}
+  table.wk td.task{font-weight:700;background:var(--surface-2);min-width:120px}
+  table.wk td.cell{min-width:74px}
+  table.wk td .nm{display:block;line-height:1.35}
+  table.wk .dash{color:var(--line-strong)}
+  table.wk td.fk .nm:first-child::after{content:" ⛟";font-size:10px;color:var(--alu)}
+
+  details.cfg{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
+  details.cfg>summary{cursor:pointer;padding:13px 14px;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--steel);list-style:none}
+  details.cfg>summary::-webkit-details-marker{display:none}
+  details.cfg>summary::before{content:"▸ ";color:var(--steel-2)}
+  details.cfg[open]>summary::before{content:"▾ "}
+  .cfg-body{padding:0 14px 14px}
+  .cfg-block{margin-top:16px}
+  .cfg-block h4{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft)}
+  .row{display:flex;gap:8px;align-items:center;margin-bottom:7px;flex-wrap:wrap}
+  input[type=text],input[type=password]{border:1px solid var(--line-strong);border-radius:8px;padding:8px 10px;font:inherit;background:#fff}
+  .row input.grow{flex:1;min-width:120px}
+  input[type=number]{width:56px;border:1px solid var(--line-strong);border-radius:8px;padding:8px;font:inherit;font-family:var(--mono);background:#fff}
+  select{border:1px solid var(--line-strong);border-radius:8px;padding:8px;font:inherit;background:#fff}
+  input[type=date]{border:1px solid var(--line-strong);border-radius:8px;padding:7px 8px;background:#fff;font:inherit;font-family:var(--mono)}
+  .lbl{font-size:12px;color:var(--ink-soft);font-family:var(--mono)}
+  .del{background:transparent;border:0;color:var(--alert);cursor:pointer;font-size:22px;padding:0 4px;line-height:1}
+  .checkline{display:flex;align-items:center;gap:7px;font-size:13px}
+  .checkline input{width:17px;height:17px}
+  .daybox{display:flex;gap:6px;flex-wrap:wrap}
+  .daybox label{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line-strong);border-radius:7px;padding:5px 8px;font-size:12px;cursor:pointer}
+  .addbtn{background:var(--surface-2);border:1.5px dashed var(--line-strong);border-radius:8px;padding:9px 12px;font:inherit;font-weight:600;color:var(--steel);cursor:pointer;width:100%;margin-top:2px}
+  .taskcard{border:1px solid var(--line);border-radius:10px;padding:11px;margin-bottom:10px;background:var(--surface-2)}
+  .hint{font-size:12px;color:var(--ink-soft);margin-top:6px;line-height:1.4}
+  .danger{color:var(--alert);border-color:#e3b3a7}
+  .foot{text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--steel-2);text-transform:uppercase;margin-top:18px;line-height:1.6}
+
+  @media print{
+    body{background:#fff}
+    .wrap{max-width:none;padding:0}
+    .modebar,.kicker,h1,#viewBryg,#viewPrac,.foot,.week-controls,.week-actions,.refresh,.hint{display:none !important}
+    #viewWeek{display:block !important}
+    section{border:none;padding:0;background:#fff;margin:0}
+    .print-title{display:block;margin-bottom:10px}
+    .print-title .pt-brand{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#444;font-family:var(--mono)}
+    .print-title .pt-range{font-size:20px;font-weight:800}
+    .wk-wrap{overflow:visible}
+    table.wk{font-size:11px}
+    table.wk thead th{background:#222 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    table.wk td.task{background:#eee !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    @page{size:landscape;margin:12mm}
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="kicker">Tablica dyżurów · STREDA FT / SUB</div>
+    <h1>Plan <span>dyżurów</span></h1>
+    <div class="modebar">
+      <button id="mWeek" class="on">Tydzień</button>
+      <button id="mPrac">Pracownik</button>
+      <button id="mBryg">Brygadzista</button>
+    </div>
+  </header>
+
+  <!-- ============ TYDZIEŃ ============ -->
+  <div id="viewWeek">
+    <section>
+      <div class="week-controls">
+        <div class="week-nav">
+          <button id="wkPrev">‹</button>
+          <span class="week-range" id="wkRange"></span>
+          <button id="wkNext">›</button>
+        </div>
+        <button class="refresh" id="wkToday">Dziś</button>
+      </div>
+      <div class="week-actions">
+        <button class="btn btn-amber" id="wkPrint" style="flex:1">Drukuj / PDF</button>
+      </div>
+      <div class="print-title">
+        <div class="pt-brand">Tablica dyżurów · STREDA FT / SUB</div>
+        <div class="pt-range" id="ptRange"></div>
+      </div>
+      <div class="wk-wrap"><div id="wkTable"></div></div>
+      <div class="hint">Dni bez planu układa brygadzista w swoim trybie. ⛟ = zadanie z wózkiem.</div>
+    </section>
+  </div>
+
+  <!-- ============ PRACOWNIK ============ -->
+  <div id="viewPrac" style="display:none">
+    <section>
+      <div class="sec-head"><span class="sec-title">Wybierz siebie</span><button class="refresh" id="wRefresh">Odśwież</button></div>
+      <div class="chips" id="wRoster"></div>
+    </section>
+    <div id="wResult"></div>
+  </div>
+
+  <!-- ============ BRYGADZISTA ============ -->
+  <div id="viewBryg" style="display:none">
+    <section>
+      <div class="week-controls">
+        <div class="week-nav">
+          <button id="bkPrev">‹</button>
+          <span class="week-range" id="bkRange"></span>
+          <button id="bkNext">›</button>
+        </div>
+        <button class="refresh" id="bkToday">Dziś</button>
+      </div>
+      <div class="sec-head" style="margin-top:4px">
+        <span class="sec-title">Dyspozycyjność</span>
+        <span class="sec-note">kliknij, by zmienić</span>
+      </div>
+      <div class="dg-wrap"><div id="dyspoGrid"></div></div>
+      <div class="hint">✓ = w pracy, — = nieobecny. Kropka przy dacie: <span class="dot ok"></span> plan zatwierdzony · <span class="dot no"></span> brak planu · <span class="dot warn"></span> w planie jest nieobecny.</div>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <span class="sec-title">Plany tygodnia</span>
+        <button class="refresh" id="fillWeekBtn">Ułóż brakujące</button>
+      </div>
+      <div id="dayList"></div>
+    </section>
+
+    <div id="result"></div>
+
+    <section>
+      <div class="sec-head"><span class="sec-title">Obłożenie · ten tydzień</span><span class="sec-note">suma wag zadań</span></div>
+      <div id="loadView"></div>
+    </section>
+
+    <details class="cfg" id="cfgHist">
+      <summary>Zatwierdzone plany · edycja wstecz</summary>
+      <div class="cfg-body"><div id="plansHist"></div></div>
+    </details>
+
+    <details class="cfg" id="cfg">
+      <summary>Ustawienia · brygada, zadania, dostęp</summary>
+      <div class="cfg-body">
+        <div class="cfg-block">
+          <h4>Brygada</h4>
+          <div id="cfgRoster"></div>
+          <button class="addbtn" id="addPerson">+ dodaj osobę</button>
+          <div class="hint">„wózki" = uprawnienia na wózki widłowe. Tylko te osoby obsłużą i zastąpią zadania z wymogiem wózków.</div>
+        </div>
+        <div class="cfg-block">
+          <h4>Zadania</h4>
+          <div id="cfgTasks"></div>
+          <button class="addbtn" id="addTask">+ dodaj zadanie</button>
+          <div class="hint">Waga (1–3), liczba osób, częstotliwość, dzień, wózki, stała osoba i „razem z". Wszystko liczy się do jednego balansu.</div>
+        </div>
+        <div class="cfg-block">
+          <h4>Dni robocze</h4>
+          <div class="daybox" id="workDays"></div>
+          <div class="hint">Dyspo, widok tygodniowy i „ułóż brakujące" biorą pod uwagę tylko te dni.</div>
+        </div>
+        <div class="cfg-block">
+          <h4>Dostęp</h4>
+          <div class="row"><span class="lbl">PIN brygadzisty</span><input type="text" id="pinField" class="grow" placeholder="pusty = bez blokady"></div>
+          <div class="hint">Ustawiony PIN pyta o kod przy wejściu w tryb Brygadzista. Miękka blokada, nie zabezpieczenie.</div>
+        </div>
+        <div class="cfg-block">
+          <h4>Ledger · cała historia</h4>
+          <div id="ledger"></div>
+        </div>
+        <div class="cfg-block">
+          <h4>Dane</h4>
+          <div class="row"><span class="lbl">synchronizacja</span><span class="sec-note" id="syncInfo">—</span></div>
+          <button class="btn btn-ghost danger" id="resetHist" style="width:100%">Wyzeruj historię, plany i dyspozycyjność</button>
+          <div class="hint">Rotacja liczy się z zapisanych planów, więc reset kasuje też harmonogram.</div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <div class="foot">
+    <span id="saveState">…</span><br>
+    Plan = podgląd · „Zatwierdź" zapisuje
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   KONFIGURACJA FIREBASE (synchronizacja między urządzeniami)
+   ---------------------------------------------------------------------
+   Bez konfiguracji aplikacja działa LOKALNIE (dane tylko na tym
+   urządzeniu). Żeby cała brygada widziała to samo:
+   instrukcja w README.md — po utworzeniu projektu Firebase wklej
+   tutaj obiekt konfiguracyjny zamiast null, np.:
+
+   const FIREBASE_CONFIG = {
+     apiKey: "AIza…",
+     authDomain: "twoj-projekt.firebaseapp.com",
+     databaseURL: "https://twoj-projekt-default-rtdb.europe-west1.firebasedatabase.app",
+     projectId: "twoj-projekt",
+     appId: "1:…"
+   };
+   ===================================================================== */
+const FIREBASE_CONFIG = null;
+
+/* ---------- storage: localStorage (cache/offline) ---------- */
+const KEY="plan_sprzatania_v5";
+const mem={};
+const LS=(()=>{ try{ const k="__t"; localStorage.setItem(k,"1"); localStorage.removeItem(k); return true; }catch(e){ return false; } })();
+const store={
+  get(k){ if(LS){ try{ const v=localStorage.getItem(k); return v?{value:v}:null; }catch(e){} } return (k in mem)?{value:mem[k]}:null; },
+  set(k,v){ if(LS){ try{ localStorage.setItem(k,v); return true; }catch(e){} } mem[k]=v; return false; }
+};
+
+/* ---------- firebase sync ---------- */
+let fbRef=null, fbOnline=false, lastPushed="";
+function setSyncMsg(t){ const m=document.getElementById("saveState"); if(m)m.textContent=t; const s=document.getElementById("syncInfo"); if(s)s.textContent=t; }
+function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s); }); }
+async function initFirebase(){
+  if(!FIREBASE_CONFIG || !FIREBASE_CONFIG.databaseURL){ setSyncMsg(LS?"Tryb lokalny · dane na tym urządzeniu":"Uwaga: pamięć niedostępna — dane znikną po zamknięciu"); return; }
+  try{
+    await loadScript("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
+    await loadScript("https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js");
+    firebase.initializeApp(FIREBASE_CONFIG);
+    fbRef=firebase.database().ref("dyzury/state");
+    fbRef.on("value",snap=>{
+      const v=snap.val();
+      if(v==null){ pushRemote(); fbOnline=true; setSyncMsg("Online · baza wspólna (pierwszy zapis)"); return; }
+      fbOnline=true;
+      const j=JSON.stringify(v);
+      if(j===lastPushed){ setSyncMsg("Online · dane wspólne dla wszystkich"); return; }
+      state=v; ensureFields(); recomputeDerived(); store.set(KEY,j);
+      rerenderMode(); setSyncMsg("Online · dane wspólne dla wszystkich");
+    },err=>{ fbOnline=false; setSyncMsg("Błąd połączenia — tryb lokalny"); });
+  }catch(e){ fbOnline=false; setSyncMsg("Nie udało się połączyć — tryb lokalny"); }
+}
+function pushRemote(){ if(!fbRef)return; lastPushed=JSON.stringify(state); fbRef.set(JSON.parse(lastPushed)); }
+
+function save(){
+  recomputeDerived();
+  store.set(KEY,JSON.stringify(state));
+  pushRemote();
+  renderLedger();
+  if(!fbRef) setSyncMsg(LS?"Zapisano lokalnie na tym urządzeniu":"Uwaga: pamięć niedostępna — dane znikną po zamknięciu");
+}
+function loadRaw(){ try{ const r=store.get(KEY); if(r&&r.value) return JSON.parse(r.value); }catch(e){} return null; }
+function reloadFromStore(){ if(fbRef)return; const s=loadRaw(); if(s){ state=s; ensureFields(); recomputeDerived(); } }
+
+/* ---------- helpers ---------- */
+function uid(){ return Math.random().toString(36).slice(2,8); }
+function iso(d){ const x=new Date(d); return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0"); }
+function parse(s){ const [y,m,dd]=s.split("-").map(Number); return new Date(y,m-1,dd); }
+function isoWeekday(d){ const g=d.getDay(); return g===0?7:g; }
+function midnight(d){ const x=new Date(d); x.setHours(0,0,0,0); return x; }
+function mondayOf(d){ const x=midnight(d); x.setDate(x.getDate()-(isoWeekday(x)-1)); return x; }
+function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function dayDiff(a,b){ return Math.round((midnight(a)-midnight(b))/86400000); }
+function upcomingWeekday(wd){ const t=new Date(); let a=(wd-isoWeekday(t)); if(a<0)a+=7; return iso(addDays(t,a)); }
+const DAYS=["Pon","Wt","Śr","Czw","Pt","Sob","Niedz"];
+const DAYS_FULL=["poniedziałek","wtorek","środa","czwartek","piątek","sobota","niedziela"];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const $=(s,r=document)=>r.querySelector(s);
+const el=(t,c,txt)=>{const e=document.createElement(t); if(c)e.className=c; if(txt!=null)e.textContent=txt; return e;};
+function fmtDay(s){ const d=parse(s); return DAYS_FULL[isoWeekday(d)-1]+" · "+s.split("-").reverse().join("."); }
+function shortDate(s){ return s.split("-").reverse().slice(0,2).join("."); }
+
+/* ---------- defaults ---------- */
+function defaults(){
+  const dgk={id:"p_dgk",name:"DGK",forklift:false};
+  const hbk={id:"p_hbk",name:"HBK",forklift:true};
+  const p3={id:uid(),name:"Osoba 3",forklift:true};
+  const p4={id:uid(),name:"Osoba 4",forklift:false};
+  const p5={id:uid(),name:"Osoba 5",forklift:false};
+  const kartony={id:uid(),name:"Kartony + folia",weight:1,people:2,freq:"daily",intervalDays:2,weekday:1,anchor:iso(new Date()),requiresForklift:false,primaryId:null,linkTo:null};
+  return {
+    version:5, pin:"", workDays:[1,2,3,4,5],
+    roster:[dgk,hbk,p3,p4,p5],
+    tasks:[
+      kartony,
+      {id:uid(),name:"Zamiatanie strefa wspólna",weight:2,people:2,freq:"weekly",intervalDays:1,weekday:1,anchor:null,requiresForklift:false,primaryId:null,linkTo:kartony.id},
+      {id:uid(),name:"Odkurzanie piły",weight:1,people:1,freq:"daily",intervalDays:1,weekday:1,anchor:null,requiresForklift:false,primaryId:null,linkTo:null},
+      {id:uid(),name:"Podpisanie pił i giętarek (ze sprawdzeniem worka)",weight:2,people:1,freq:"weekly",intervalDays:1,weekday:1,anchor:null,requiresForklift:false,primaryId:dgk.id,linkTo:null},
+      {id:uid(),name:"Wywóz aluminium",weight:2,people:1,freq:"biweekly",intervalDays:1,weekday:5,anchor:upcomingWeekday(5),requiresForklift:true,primaryId:hbk.id,linkTo:null}
+    ],
+    plans:{}, avail:{}, history:{}, lastDone:{}
+  };
+}
+function ensureFields(){ state.plans=state.plans||{}; state.avail=state.avail||{}; state.pin=state.pin||""; state.workDays=state.workDays||[1,2,3,4,5]; state.history=state.history||{}; state.lastDone=state.lastDone||{}; }
+
+/* ---------- schedule rules ---------- */
+function taskActiveOn(t,dateStr){
+  const d=parse(dateStr);
+  if(t.freq==="daily") return true;
+  if(t.freq==="interval"){ if(!t.anchor)return true; const diff=dayDiff(d,parse(t.anchor)); return diff>=0 && diff%Math.max(1,t.intervalDays)===0; }
+  if(t.freq==="weekly") return isoWeekday(d)===t.weekday;
+  if(t.freq==="biweekly"){ if(isoWeekday(d)!==t.weekday)return false; if(!t.anchor)return true;
+    const w=Math.round((mondayOf(d)-mondayOf(parse(t.anchor)))/(7*86400000)); return ((w%2)+2)%2===0; }
+  return false;
+}
+function freqLabel(t){
+  if(t.freq==="daily")return "codziennie";
+  if(t.freq==="interval")return "co "+t.intervalDays+" dni";
+  if(t.freq==="weekly")return "co "+DAYS[t.weekday-1].toLowerCase();
+  if(t.freq==="biweekly")return "co 2 tyg · "+DAYS[t.weekday-1].toLowerCase();
+  return "";
+}
+
+/* ---------- state ---------- */
+let state=null, plan=null, mode="week", brygUnlocked=false, worker=null, weekRef=iso(new Date());
+const byId=id=>state.roster.find(p=>p.id===id);
+const nameOf=id=>{ const p=byId(id); return p?p.name:"(usunięty)"; };
+const hist=id=>state.history[id]||0;
+function recomputeDerived(){
+  const h={},ld={};
+  Object.keys(state.plans||{}).forEach(date=>{ (state.plans[date].items||[]).forEach(it=>{ (it.assignees||[]).forEach(pid=>{
+    if(!pid)return; h[pid]=(h[pid]||0)+it.weight; ld[it.taskId]=ld[it.taskId]||{};
+    if(!ld[it.taskId][pid]||date>ld[it.taskId][pid]) ld[it.taskId][pid]=date; }); }); });
+  state.history=h; state.lastDone=ld;
+}
+function daysSince(tid,pid,dateStr){ const r=state.lastDone[tid]&&state.lastDone[tid][pid]; if(!r)return null; return dayDiff(parse(dateStr),parse(r)); }
+function recency(tid,pid,dateStr){ const ds=daysSince(tid,pid,dateStr); if(ds===null)return 0; if(ds<=1)return 4; if(ds<=3)return 2; return 0; }
+
+/* ---------- availability ---------- */
+function availOn(dateStr,pid){ const o=state.avail[dateStr]; if(o && (pid in o)) return !!o[pid]; return true; }
+function setAvail(dateStr,pid,val){ state.avail[dateStr]=state.avail[dateStr]||{}; state.avail[dateStr][pid]=!!val; }
+function presentOn(dateStr){ return state.roster.filter(p=>availOn(dateStr,p.id)).map(p=>p.id); }
+
+/* ---------- week helpers ---------- */
+function weekDaysList(refStr){
+  const mon=mondayOf(parse(refStr)); const out=[];
+  for(let i=0;i<7;i++){ const d=addDays(mon,i); const wd=isoWeekday(d); if(state.workDays.includes(wd)) out.push(iso(d)); }
+  return out;
+}
+function weekRange(refStr){ const mon=mondayOf(parse(refStr)); return shortDate(iso(mon))+"–"+shortDate(iso(addDays(mon,6))); }
+function weekLoadOf(pid,refStr){
+  let s=0; weekDaysList(refStr).forEach(d=>{ const rec=state.plans[d]; if(!rec)return;
+    rec.items.forEach(it=>{ if(it.assignees.includes(pid)) s+=it.weight; }); });
+  return s;
+}
+function planWarning(dateStr){ const rec=state.plans[dateStr]; if(!rec)return false;
+  return rec.items.some(it=>it.assignees.some(pid=>pid&&!availOn(dateStr,pid))); }
+
+/* ---------- engine ---------- */
+function buildPlan(dateStr,presentArr){
+  const dayLoad={}; presentArr.forEach(id=>dayLoad[id]=0);
+  const active=state.tasks.filter(t=>taskActiveOn(t,dateStr)).sort((a,b)=>(b.requiresForklift-a.requiresForklift)||(b.weight-a.weight));
+  const byTask={},done=new Set(),items=[]; const remaining=active.slice(); let guard=0;
+  while(remaining.length && guard++<200){
+    let idx=remaining.findIndex(t=>!t.linkTo||done.has(t.linkTo)||!active.some(a=>a.id===t.linkTo)); if(idx<0)idx=0;
+    const t=remaining.splice(idx,1)[0];
+    let pool=presentArr.slice(); if(t.requiresForklift)pool=pool.filter(id=>byId(id).forklift);
+    const chosen=[];
+    if(t.primaryId && pool.includes(t.primaryId)) chosen.push(t.primaryId);
+    if(t.linkTo && byTask[t.linkTo]) byTask[t.linkTo].forEach(pid=>{ if(chosen.length<t.people&&pool.includes(pid)&&!chosen.includes(pid))chosen.push(pid); });
+    while(chosen.length<t.people){ const c=pool.filter(id=>!chosen.includes(id)); if(!c.length)break;
+      c.sort((a,b)=>(hist(a)+dayLoad[a]+recency(t.id,a,dateStr))-(hist(b)+dayLoad[b]+recency(t.id,b,dateStr))); chosen.push(c[0]); }
+    chosen.forEach(pid=>dayLoad[pid]+=t.weight); byTask[t.id]=chosen; done.add(t.id);
+    items.push({taskId:t.id,name:t.name,weight:t.weight,people:t.people,requiresForklift:t.requiresForklift,primaryId:t.primaryId,linkTo:t.linkTo,freq:freqLabel(t),assignees:chosen,substitute:!!(t.primaryId&&!chosen.includes(t.primaryId)),missing:t.people-chosen.length});
+  }
+  items.sort((a,b)=>(b.requiresForklift-a.requiresForklift)||(b.weight-a.weight));
+  return {date:dateStr,present:presentArr,items,isEdit:false};
+}
+function restingOf(p){ const busy=new Set(); p.items.forEach(it=>it.assignees.forEach(id=>{if(id)busy.add(id);})); return p.present.filter(id=>!busy.has(id)); }
+function autoFill(it,dateStr,exclude){
+  const pool=state.roster.map(p=>p.id).filter(id=>!exclude.has(id)&&availOn(dateStr,id)&&!it.assignees.includes(id)&&(!it.requiresForklift||byId(id).forklift));
+  while(it.assignees.length<it.people && pool.length){ pool.sort((a,b)=>(hist(a)+recency(it.taskId,a,dateStr))-(hist(b)+recency(it.taskId,b,dateStr))); it.assignees.push(pool.shift()); }
+  it.missing=it.people-it.assignees.length; it.substitute=!!(it.primaryId&&!it.assignees.includes(it.primaryId));
+}
+function serialize(p){ return { date:p.date, present:(p.present||[]).slice(),
+  items:p.items.map(it=>({taskId:it.taskId,name:it.name,weight:it.weight,people:it.people,requiresForklift:it.requiresForklift,primaryId:it.primaryId,linkTo:it.linkTo,freq:it.freq,assignees:it.assignees.filter(x=>x!=null)})),
+  committedAt:new Date().toISOString() }; }
+
+/* ---------- commit / edit ---------- */
+function commit(){ if(!plan)return; state.plans[plan.date]=serialize(plan); plan=null; save(); renderBryg(); }
+function editPlan(date){
+  const rec=state.plans[date]; if(!rec)return;
+  if(mode!=="bryg"){ setMode("bryg"); if(mode!=="bryg")return; }
+  weekRef=date; renderBryg();
+  plan={ date, isEdit:true, present:(rec.present&&rec.present.length?rec.present.slice():presentOn(date)),
+    items:rec.items.map(it=>({...it,assignees:it.assignees.slice(),missing:it.people-it.assignees.length,substitute:!!(it.primaryId&&!it.assignees.includes(it.primaryId))})) };
+  renderResult(); $("#result").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function buildForDay(date){
+  plan=buildPlan(date,presentOn(date));
+  renderResult(); $("#result").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+/* ---------- BRYGADZISTA render ---------- */
+function renderBryg(){
+  $("#bkRange").textContent=weekRange(weekRef);
+  renderDyspoGrid(); renderDayList(); renderResult(); renderLoadView(); renderPlansHist(); renderLedger();
+}
+function renderDyspoGrid(){
+  const days=weekDaysList(weekRef);
+  const tbl=el("table","dg");
+  const thead=el("thead"); const htr=el("tr"); htr.appendChild(el("th",null,"Osoba"));
+  days.forEach(d=>{ const th=el("th");
+    const dotCls = state.plans[d] ? (planWarning(d)?"warn":"ok") : "no";
+    th.innerHTML=DAYS[isoWeekday(parse(d))-1]+" "+shortDate(d)+"<span class='dot "+dotCls+"'></span>";
+    htr.appendChild(th); });
+  thead.appendChild(htr); tbl.appendChild(thead);
+  const tb=el("tbody");
+  state.roster.forEach(p=>{
+    const tr=el("tr"); const nm=el("td","nm",p.name); if(p.forklift)nm.appendChild(el("span","lic","⛟")); tr.appendChild(nm);
+    days.forEach(d=>{ const td=el("td"); const on=availOn(d,p.id);
+      const b=el("button","dgc "+(on?"on":"off"),on?"✓":"—");
+      b.onclick=()=>{ setAvail(d,p.id,!on); save(); renderDyspoGrid(); renderDayList(); };
+      td.appendChild(b); tr.appendChild(td); });
+    tb.appendChild(tr);
+  });
+  tbl.appendChild(tb);
+  const w=$("#dyspoGrid"); w.innerHTML=""; w.appendChild(tbl);
+}
+function renderDayList(){
+  const box=$("#dayList"); box.innerHTML="";
+  const days=weekDaysList(weekRef);
+  if(!days.length){ box.appendChild(el("div","empty","Brak dni roboczych w tym tygodniu.")); return; }
+  days.forEach(d=>{
+    const rec=state.plans[d]; const nTasks=state.tasks.filter(t=>taskActiveOn(t,d)).length;
+    const line=el("div","day-line");
+    const info=el("div");
+    info.appendChild(el("div","dd",fmtDay(d)));
+    let stat, warn=false;
+    if(rec){ warn=planWarning(d);
+      stat=warn?"⚠ w planie jest nieobecny — popraw":"zatwierdzony · "+rec.items.length+" zadań"; }
+    else stat = nTasks? "brak planu · "+nTasks+" zadań czeka · "+presentOn(d).length+" os. w pracy" : "nic nie wypada";
+    info.appendChild(el("div","ds"+(warn?" warn":""),stat));
+    line.appendChild(info);
+    const btns=el("div","btns");
+    if(rec){ const b=el("button","btn btn-ghost","Edytuj"); b.onclick=()=>editPlan(d); btns.appendChild(b); }
+    else if(nTasks){ const b=el("button","btn btn-primary","Ułóż"); b.onclick=()=>buildForDay(d); btns.appendChild(b); }
+    line.appendChild(btns); box.appendChild(line);
+  });
+}
+function fillWeek(){
+  const days=weekDaysList(weekRef);
+  const missing=days.filter(d=>!state.plans[d] && state.tasks.some(t=>taskActiveOn(t,d)));
+  if(!missing.length){ alert("Wszystkie dni robocze w tym tygodniu są już ułożone."); return; }
+  if(!confirm("Ułożyć "+missing.length+" brakujących dni według zaznaczonej dyspozycyjności? Dni już zatwierdzone zostają bez zmian.")) return;
+  missing.forEach(d=>{ const p=buildPlan(d,presentOn(d)); state.plans[d]=serialize(p); recomputeDerived(); });
+  save(); renderBryg();
+}
+
+function renderResult(){
+  const box=$("#result"); box.innerHTML=""; if(!plan)return;
+  const sec=el("section"); const h=el("div","sec-head");
+  h.appendChild(el("span","sec-title","Plan · "+fmtDay(plan.date)));
+  if(plan.isEdit)h.appendChild(el("span","editbadge","edycja")); else h.appendChild(el("span","sec-note",plan.items.length+" zadań")); sec.appendChild(h);
+  if(!plan.items.length)sec.appendChild(el("div","empty","Żadne zadanie nie wypada na ten dzień."));
+  plan.items.forEach((it,ti)=>{
+    const fixed=it.primaryId||it.requiresForklift; const card=el("div","item"+(it.missing>0?" gap":(fixed?" fixed":"")));
+    const top=el("div","item-top"); top.appendChild(el("div","item-name",it.name)); top.appendChild(el("div","freq",it.freq+" · waga "+it.weight)); card.appendChild(top);
+    const slots=el("div","slots");
+    const pool = state.roster.map(p=>p.id).filter(id=>availOn(plan.date,id))
+      .concat(state.roster.map(p=>p.id).filter(id=>!availOn(plan.date,id)));
+    for(let k=0;k<it.people;k++){ const cur=it.assignees[k]; const sel=el("select","who-select"+(cur==null?" empty":""));
+      const none=el("option",null,"— brak —"); none.value=""; if(cur==null)none.selected=true; sel.appendChild(none);
+      pool.forEach(id=>{ if(it.requiresForklift&&!byId(id).forklift)return;
+        let label=byId(id).name+" · "+weekLoadOf(id,plan.date);
+        if(!availOn(plan.date,id))label+=" · NIEOBECNY";
+        const o=el("option",null,label); o.value=id; if(id===cur)o.selected=true; sel.appendChild(o); });
+      sel.onchange=()=>{ plan.items[ti].assignees[k]=sel.value||null; recomp(ti); renderResult(); }; slots.appendChild(sel); }
+    if(it.substitute)slots.appendChild(el("span","tag sub","zastępstwo"));
+    if(it.requiresForklift)slots.appendChild(el("span","tag lic","wózki"));
+    if(it.linkTo){ const t=state.tasks.find(x=>x.id===it.linkTo); if(t)slots.appendChild(el("span","tag link","z: "+t.name.split(" ")[0])); }
+    if(it.missing>0)slots.appendChild(el("span","tag gap","brak "+it.missing+" os · "+(it.requiresForklift?"brak wózków":"za mało osób")));
+    card.appendChild(slots); sec.appendChild(card);
+  });
+  const hintL=el("div","hint","Liczba przy nazwisku = obłożenie w tym tygodniu (suma wag)."); sec.appendChild(hintL);
+  const assignedNow=[...new Set(plan.items.flatMap(it=>it.assignees).filter(Boolean))];
+  if(assignedNow.length){ const fell=el("div","fell"); fell.appendChild(el("span","lbl","Ktoś wypadł?"));
+    const sel=el("select"); const n=el("option",null,"— wybierz osobę —"); n.value=""; sel.appendChild(n);
+    assignedNow.forEach(id=>{const o=el("option",null,nameOf(id));o.value=id;sel.appendChild(o);}); fell.appendChild(sel);
+    const b=el("button","btn btn-ghost","Zdejmij i zastąp"); b.style.padding="8px 12px";
+    b.onclick=()=>{ const pid=sel.value; if(!pid)return; const ex=new Set([pid]);
+      setAvail(plan.date,pid,false);
+      plan.items.forEach(it=>{ it.assignees=it.assignees.filter(a=>a!==pid); });
+      plan.items.forEach(it=>{ if(it.assignees.length<it.people)autoFill(it,plan.date,ex); });
+      renderDyspoGrid(); renderResult(); };
+    fell.appendChild(b);
+    const fh=el("span","hint","Osoba zostanie też odznaczona w dyspo tego dnia."); fell.appendChild(fh);
+    sec.appendChild(fell); }
+  const rest=restingOf(plan);
+  if(rest.length){ const r=el("div","resting"); r.innerHTML="Bez dyżuru: <b>"+rest.map(id=>esc(nameOf(id))).join(", ")+"</b>"; sec.appendChild(r); }
+  const row=el("div","btn-row");
+  const conf=el("button","btn btn-amber",plan.isEdit?"Zapisz zmiany":"Zatwierdź plan"); conf.onclick=commit;
+  const re=el("button","btn btn-ghost",plan.isEdit?"Odrzuć":"Losuj ponownie");
+  re.onclick=()=>{ if(plan.isEdit){ plan=null; renderResult(); } else { plan=buildPlan(plan.date,presentOn(plan.date)); renderResult(); } };
+  row.appendChild(conf); row.appendChild(re); sec.appendChild(row); box.appendChild(sec);
+}
+function recomp(ti){ const it=plan.items[ti]; it.missing=it.people-it.assignees.filter(x=>x!=null).length; it.substitute=!!(it.primaryId&&!it.assignees.includes(it.primaryId)); }
+
+function renderLoadView(){
+  const box=$("#loadView"); box.innerHTML="";
+  const rows=state.roster.map(p=>({p,w:weekLoadOf(p.id,weekRef),t:hist(p.id)})).sort((a,b)=>b.w-a.w);
+  const max=Math.max(1,...rows.map(r=>r.w));
+  if(rows.every(r=>r.w===0)){ box.appendChild(el("div","empty","Brak zatwierdzonych planów w tym tygodniu.")); return; }
+  rows.forEach(({p,w,t})=>{
+    const row=el("div","load-row");
+    row.appendChild(el("div","load-name",p.name));
+    const bar=el("div","load-bar"); const fill=el("i"); fill.style.width=Math.round(w/max*100)+"%"; bar.appendChild(fill); row.appendChild(bar);
+    const v=el("div","load-val"); v.innerHTML=w+" <span class='load-total'>/ "+t+"</span>"; row.appendChild(v);
+    box.appendChild(row);
+  });
+  box.appendChild(el("div","hint","Pierwsza liczba = ten tydzień, druga = cała historia."));
+}
+function renderPlansHist(){
+  const box=$("#plansHist"); box.innerHTML="";
+  const dates=Object.keys(state.plans||{}).sort().reverse();
+  if(!dates.length){ box.appendChild(el("div","empty","Brak zatwierdzonych planów.")); return; }
+  dates.slice(0,40).forEach(d=>{ const rec=state.plans[d]; const line=el("div","plan-line");
+    const info=el("div"); info.appendChild(el("div","pd",fmtDay(d)));
+    info.appendChild(el("div","pn",rec.items.length+" zadań · "+[...new Set(rec.items.flatMap(i=>i.assignees))].length+" os.")); line.appendChild(info);
+    const b=el("button","btn-ghost btn","Edytuj"); b.style.padding="7px 12px"; b.style.fontSize="13px"; b.onclick=()=>editPlan(d); line.appendChild(b); box.appendChild(line); });
+}
+function renderLedger(){
+  const box=$("#ledger"); if(!box)return; box.innerHTML="";
+  const rows=state.roster.map(p=>({p,v:hist(p.id)})).sort((a,b)=>b.v-a.v);
+  if(rows.every(r=>r.v===0)){ box.appendChild(el("div","empty","Brak historii — zatwierdź pierwszy plan.")); return; }
+  rows.forEach(({p,v})=>{ const row=el("div","ledger-row"); row.appendChild(el("div","ledger-name",p.name));
+    const t=el("div","tally"); if(v===0)t.appendChild(el("span","rest0","·")); else t.textContent=tally(v); row.appendChild(t);
+    row.appendChild(el("div","ledger-val",String(v))); box.appendChild(row); });
+}
+function tally(n){ let o=""; const f=Math.floor(n/5),r=n%5; for(let i=0;i<f;i++)o+="卌 "; o+="|".repeat(r); return o.trim(); }
+
+/* ---------- TYDZIEŃ ---------- */
+function renderWeek(){
+  const days=weekDaysList(weekRef);
+  const range=weekRange(weekRef);
+  $("#wkRange").textContent=range; $("#ptRange").textContent="Tydzień "+range;
+  const rowOrder=state.tasks.map(t=>t.id);
+  const nameMap={}; const rowSet=new Set();
+  days.forEach(d=>{ const rec=state.plans[d];
+    if(rec) rec.items.forEach(it=>{ rowSet.add(it.taskId); nameMap[it.taskId]=it.name; });
+    else state.tasks.filter(t=>taskActiveOn(t,d)).forEach(t=>{ rowSet.add(t.id); nameMap[t.id]=t.name; });
+  });
+  const rows=[...rowSet].sort((a,b)=>{ const ia=rowOrder.indexOf(a),ib=rowOrder.indexOf(b); return (ia<0?99:ia)-(ib<0?99:ib); });
+
+  const tbl=el("table","wk");
+  const thead=el("thead"); const htr=el("tr"); htr.appendChild(el("th",null,"Zadanie"));
+  days.forEach(d=>{ const noPlan=!state.plans[d]; const th=el("th",noPlan?"noplan":null);
+    th.innerHTML=DAYS[isoWeekday(parse(d))-1]+"<br>"+shortDate(d)+(noPlan?"<br><span style='font-weight:400;text-transform:none'>brak planu</span>":""); htr.appendChild(th); });
+  thead.appendChild(htr); tbl.appendChild(thead);
+
+  const tb=el("tbody");
+  if(!rows.length){ const tr=el("tr"); const td=el("td"); td.colSpan=days.length+1; td.className="dash"; td.textContent="Brak zadań w tym tygodniu."; tr.appendChild(td); tb.appendChild(tr); }
+  rows.forEach(tid=>{
+    const tr=el("tr"); tr.appendChild(el("td","task",nameMap[tid]||"(zadanie)"));
+    days.forEach(d=>{ const rec=state.plans[d]; const td=el("td","cell");
+      if(!rec){ td.className="cell dash"; td.textContent="—"; }
+      else { const it=rec.items.find(x=>x.taskId===tid);
+        if(!it){ td.className="cell dash"; td.textContent="·"; }
+        else { if(it.requiresForklift)td.className="cell fk";
+          if(!it.assignees.length){ td.appendChild(el("span","dash","brak")); }
+          else it.assignees.forEach(pid=>td.appendChild(el("span","nm",nameOf(pid)))); } }
+      tr.appendChild(td); });
+    tb.appendChild(tr);
+  });
+  tbl.appendChild(tb);
+  const wrap=$("#wkTable"); wrap.innerHTML=""; wrap.appendChild(tbl);
+}
+
+/* ---------- PRACOWNIK ---------- */
+function renderWorkerRoster(){ const r=$("#wRoster"); r.innerHTML="";
+  state.roster.forEach(p=>{ const c=el("div","chip pick"+(worker===p.id?" on":"")); c.appendChild(el("span",null,p.name)); if(p.forklift)c.appendChild(el("span","lic","wózki"));
+    c.onclick=()=>{ worker=p.id; renderWorkerRoster(); renderWorker(); }; r.appendChild(c); }); }
+function workerItemsOn(date){ const rec=state.plans[date]; if(!rec)return []; return rec.items.filter(it=>it.assignees.includes(worker)); }
+function renderWorker(){
+  const box=$("#wResult"); box.innerHTML="";
+  if(!worker){ const s=el("section"); s.appendChild(el("div","empty","Wybierz swoje imię powyżej.")); box.appendChild(s); return; }
+  const today=iso(new Date()); const dates=Object.keys(state.plans||{}).sort(); const sec=el("section");
+  sec.appendChild((()=>{const h=el("div","sec-head"); h.appendChild(el("span","sec-title","Dyżury · "+nameOf(worker))); return h;})());
+  const g1=el("div","wgroup"); g1.appendChild(el("div","wdate","Dziś · "+shortDate(today)));
+  const ti=workerItemsOn(today);
+  if(!state.plans[today]) g1.appendChild(el("div","empty","Plan na dziś nie jest jeszcze ułożony."));
+  else if(!ti.length) g1.appendChild(el("div","empty","Dziś nie masz dyżuru."));
+  else ti.forEach(it=>g1.appendChild(workerCard(it,today,false))); sec.appendChild(g1);
+  const up=dates.filter(d=>d>today&&workerItemsOn(d).length);
+  if(up.length){ const g=el("div","wgroup"); g.appendChild(el("div","wdate","Najbliższe")); up.slice(0,10).forEach(d=>workerItemsOn(d).forEach(it=>g.appendChild(workerCard(it,d,true)))); sec.appendChild(g); }
+  const past=dates.filter(d=>d<today&&workerItemsOn(d).length).reverse();
+  if(past.length){ const g=el("div","wgroup"); g.appendChild(el("div","wdate","Ostatnie")); past.slice(0,5).forEach(d=>workerItemsOn(d).forEach(it=>g.appendChild(workerCard(it,d,true)))); sec.appendChild(g); }
+  box.appendChild(sec);
+}
+function workerCard(it,date,showDate){ const c=el("div","wcard"); c.appendChild(el("div","wtask",it.name));
+  const others=it.assignees.filter(id=>id!==worker).map(nameOf); const meta=[];
+  if(showDate)meta.push(DAYS[isoWeekday(parse(date))-1].toLowerCase()+" "+shortDate(date));
+  if(others.length)meta.push("z: "+others.join(", ")); if(it.requiresForklift)meta.push("wózki");
+  if(meta.length)c.appendChild(el("div","wmeta",meta.join(" · "))); return c; }
+
+/* ---------- config ---------- */
+function renderConfig(){
+  const cr=$("#cfgRoster"); cr.innerHTML="";
+  state.roster.forEach(p=>{ const row=el("div","row");
+    const nm=el("input"); nm.type="text"; nm.className="grow"; nm.value=p.name; nm.oninput=()=>{p.name=nm.value; save(); renderDyspoGrid();}; row.appendChild(nm);
+    const chk=el("label","checkline"); const cb=el("input"); cb.type="checkbox"; cb.checked=p.forklift; cb.onchange=()=>{p.forklift=cb.checked; save(); renderDyspoGrid();}; chk.appendChild(cb); chk.appendChild(el("span",null,"wózki")); row.appendChild(chk);
+    const del=el("button","del","×"); del.onclick=()=>{ if(!confirm("Usunąć "+p.name+" z brygady?"))return;
+      state.roster=state.roster.filter(x=>x.id!==p.id); state.tasks.forEach(t=>{if(t.primaryId===p.id)t.primaryId=null;}); save(); renderConfig(); renderBryg(); }; row.appendChild(del); cr.appendChild(row); });
+
+  const ct=$("#cfgTasks"); ct.innerHTML="";
+  state.tasks.forEach(t=>{ const card=el("div","taskcard");
+    const r0=el("div","row"); const nm=el("input"); nm.type="text"; nm.className="grow"; nm.value=t.name; nm.oninput=()=>{t.name=nm.value; save();}; r0.appendChild(nm);
+    const del=el("button","del","×"); del.onclick=()=>{ if(!confirm("Usunąć zadanie „"+t.name+"”?"))return;
+      state.tasks.forEach(x=>{if(x.linkTo===t.id)x.linkTo=null;}); state.tasks=state.tasks.filter(x=>x.id!==t.id); save(); renderConfig(); renderDayList(); }; r0.appendChild(del); card.appendChild(r0);
+    const r1=el("div","row"); r1.appendChild(el("span","lbl","waga")); const w=el("input"); w.type="number"; w.min=1; w.max=5; w.value=t.weight; w.oninput=()=>{t.weight=Math.max(1,+w.value||1); save();}; r1.appendChild(w);
+    r1.appendChild(el("span","lbl","osoby")); const pe=el("input"); pe.type="number"; pe.min=1; pe.max=4; pe.value=t.people; pe.oninput=()=>{t.people=Math.max(1,+pe.value||1); save();}; r1.appendChild(pe);
+    const fk=el("label","checkline"); const fcb=el("input"); fcb.type="checkbox"; fcb.checked=t.requiresForklift; fcb.onchange=()=>{t.requiresForklift=fcb.checked; save();}; fk.appendChild(fcb); fk.appendChild(el("span",null,"wózki")); r1.appendChild(fk); card.appendChild(r1);
+    const r2=el("div","row"); r2.appendChild(el("span","lbl","częst."));
+    const fr=el("select"); [["daily","codziennie"],["interval","co N dni"],["weekly","co tydzień"],["biweekly","co 2 tyg."]].forEach(([v,l])=>{const o=el("option",null,l);o.value=v;if(v===t.freq)o.selected=true;fr.appendChild(o);});
+    fr.onchange=()=>{ t.freq=fr.value; if(t.freq==="interval"&&!t.anchor)t.anchor=iso(new Date()); if(t.freq==="biweekly"&&!t.anchor)t.anchor=upcomingWeekday(t.weekday); save(); renderConfig(); }; r2.appendChild(fr);
+    if(t.freq==="interval"){ r2.appendChild(el("span","lbl","co")); const iv=el("input"); iv.type="number"; iv.min=1; iv.max=30; iv.value=t.intervalDays; iv.oninput=()=>{t.intervalDays=Math.max(1,+iv.value||1); save();}; r2.appendChild(iv);
+      r2.appendChild(el("span","lbl","dni od")); const an=el("input"); an.type="date"; an.value=t.anchor||iso(new Date()); an.onchange=()=>{t.anchor=an.value; save();}; r2.appendChild(an);
+    } else if(t.freq==="weekly"||t.freq==="biweekly"){ r2.appendChild(el("span","lbl","dzień")); const wd=el("select"); DAYS.forEach((dn,i)=>{const o=el("option",null,dn);o.value=i+1;if(i+1===t.weekday)o.selected=true;wd.appendChild(o);});
+      wd.onchange=()=>{ t.weekday=+wd.value; if(t.freq==="biweekly")t.anchor=upcomingWeekday(t.weekday); save(); }; r2.appendChild(wd);
+      if(t.freq==="biweekly"){ r2.appendChild(el("span","lbl","pierwszy raz")); const an=el("input"); an.type="date"; an.value=t.anchor||upcomingWeekday(t.weekday); an.onchange=()=>{t.anchor=an.value; save();}; r2.appendChild(an); }
+    }
+    card.appendChild(r2);
+    const r3=el("div","row"); r3.appendChild(el("span","lbl","stała os."));
+    const pr=el("select"); const pn=el("option",null,"— rotacja —"); pn.value=""; pr.appendChild(pn);
+    state.roster.forEach(p=>{const o=el("option",null,p.name);o.value=p.id;if(p.id===t.primaryId)o.selected=true;pr.appendChild(o);}); pr.onchange=()=>{t.primaryId=pr.value||null; save();}; r3.appendChild(pr);
+    r3.appendChild(el("span","lbl","razem z")); const lk=el("select"); const ln=el("option",null,"— nikt —"); ln.value=""; lk.appendChild(ln);
+    state.tasks.filter(x=>x.id!==t.id).forEach(x=>{const o=el("option",null,x.name);o.value=x.id;if(x.id===t.linkTo)o.selected=true;lk.appendChild(o);}); lk.onchange=()=>{t.linkTo=lk.value||null; save();}; r3.appendChild(lk);
+    card.appendChild(r3); ct.appendChild(card); });
+
+  const wd=$("#workDays"); wd.innerHTML="";
+  DAYS.forEach((dn,i)=>{ const w=i+1; const lab=el("label"); const cb=el("input"); cb.type="checkbox"; cb.checked=state.workDays.includes(w);
+    cb.onchange=()=>{ if(cb.checked){ if(!state.workDays.includes(w))state.workDays.push(w); } else state.workDays=state.workDays.filter(x=>x!==w); state.workDays.sort(); save(); renderBryg(); }; lab.appendChild(cb); lab.appendChild(el("span",null,dn)); wd.appendChild(lab); });
+
+  $("#pinField").value=state.pin||"";
+}
+
+/* ---------- mode ---------- */
+function setMode(m){
+  if(m==="bryg" && state.pin && !brygUnlocked){ const code=prompt("PIN brygadzisty:"); if(code!==state.pin)return; brygUnlocked=true; }
+  mode=m;
+  $("#mBryg").classList.toggle("on",m==="bryg"); $("#mWeek").classList.toggle("on",m==="week"); $("#mPrac").classList.toggle("on",m==="prac");
+  $("#viewBryg").style.display=m==="bryg"?"":"none"; $("#viewWeek").style.display=m==="week"?"":"none"; $("#viewPrac").style.display=m==="prac"?"":"none";
+  if(m==="prac"){ reloadFromStore(); renderWorkerRoster(); renderWorker(); }
+  if(m==="week"){ reloadFromStore(); renderWeek(); }
+  if(m==="bryg"){ renderBryg(); renderConfig(); }
+}
+function rerenderMode(){
+  if(mode==="week")renderWeek();
+  else if(mode==="prac"){ renderWorkerRoster(); renderWorker(); }
+  else { renderBryg(); renderConfig(); }
+}
+
+/* ---------- init ---------- */
+function init(){
+  state=loadRaw();
+  if(!state || !state.version || state.version<5){ state=defaults(); store.set(KEY,JSON.stringify(state)); }
+  ensureFields(); recomputeDerived();
+
+  renderWeek(); renderConfig();
+  setSyncMsg(LS?"Tryb lokalny · dane na tym urządzeniu":"Uwaga: pamięć niedostępna — dane znikną po zamknięciu");
+  initFirebase();
+
+  $("#mBryg").onclick=()=>setMode("bryg");
+  $("#mWeek").onclick=()=>setMode("week");
+  $("#mPrac").onclick=()=>setMode("prac");
+
+  $("#wkPrev").onclick=()=>{ weekRef=iso(addDays(mondayOf(parse(weekRef)),-7)); renderWeek(); };
+  $("#wkNext").onclick=()=>{ weekRef=iso(addDays(mondayOf(parse(weekRef)),7)); renderWeek(); };
+  $("#wkToday").onclick=()=>{ weekRef=iso(new Date()); renderWeek(); };
+  $("#wkPrint").onclick=()=>window.print();
+
+  $("#bkPrev").onclick=()=>{ weekRef=iso(addDays(mondayOf(parse(weekRef)),-7)); plan=null; renderBryg(); };
+  $("#bkNext").onclick=()=>{ weekRef=iso(addDays(mondayOf(parse(weekRef)),7)); plan=null; renderBryg(); };
+  $("#bkToday").onclick=()=>{ weekRef=iso(new Date()); plan=null; renderBryg(); };
+  $("#fillWeekBtn").onclick=fillWeek;
+
+  $("#addPerson").onclick=()=>{ state.roster.push({id:uid(),name:"Nowa osoba",forklift:false}); save(); renderConfig(); renderBryg(); };
+  $("#addTask").onclick=()=>{ state.tasks.push({id:uid(),name:"Nowe zadanie",weight:1,people:1,freq:"daily",intervalDays:2,weekday:1,anchor:iso(new Date()),requiresForklift:false,primaryId:null,linkTo:null}); save(); renderConfig(); renderDayList(); };
+  $("#pinField").oninput=(e)=>{ state.pin=e.target.value.trim(); save(); };
+  $("#resetHist").onclick=()=>{ if(confirm("Wyzerować historię, usunąć wszystkie plany i dyspozycyjność?")){ state.plans={}; state.avail={}; plan=null; recomputeDerived(); save(); renderBryg(); } };
+  $("#wRefresh").onclick=()=>{ reloadFromStore(); renderWorkerRoster(); renderWorker(); };
+
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden && !fbRef){ reloadFromStore(); rerenderMode(); } });
+}
+init();
+</script>
+</html>
