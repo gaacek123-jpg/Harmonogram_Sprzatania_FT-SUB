@@ -417,7 +417,15 @@ function defaults(){
     plans:{}, avail:{}, history:{}, lastDone:{}
   };
 }
-function ensureFields(){ state.plans=state.plans||{}; state.avail=state.avail||{}; state.pin=state.pin||""; state.workDays=state.workDays||[1,2,3,4,5]; state.history=state.history||{}; state.lastDone=state.lastDone||{}; }
+function ensureFields(){
+  state.plans=state.plans||{}; state.avail=state.avail||{}; state.pin=state.pin||""; state.workDays=state.workDays||[1,2,3,4,5]; state.history=state.history||{}; state.lastDone=state.lastDone||{};
+  state.roster=state.roster||[]; state.tasks=state.tasks||[];
+  // Firebase usuwa puste tablice i nulle przy zapisie — po wczytaniu odtwarzamy
+  // brakujące pola, inaczej render wywala się na undefined.
+  state.tasks.forEach(t=>{ t.anchor=t.anchor||null; t.primaryId=t.primaryId||null; t.linkTo=t.linkTo||null; t.people=t.people||1; t.weight=t.weight||1; t.requiresForklift=!!t.requiresForklift; });
+  Object.keys(state.plans).forEach(d=>{ const rec=state.plans[d]; rec.items=rec.items||[]; rec.present=rec.present||[];
+    rec.items.forEach(it=>{ it.assignees=(it.assignees||[]).filter(x=>x!=null); it.primaryId=it.primaryId||null; it.linkTo=it.linkTo||null; }); });
+}
 
 /* ---------- schedule rules ---------- */
 function taskActiveOn(t,dateStr){
@@ -441,6 +449,7 @@ function freqLabel(t){
 let state=null, plan=null, mode="week", brygUnlocked=false, worker=null, weekRef=iso(new Date());
 const byId=id=>state.roster.find(p=>p.id===id);
 const nameOf=id=>{ const p=byId(id); return p?p.name:"(usunięty)"; };
+const hasLic=id=>{ const p=byId(id); return !!(p&&p.forklift); };
 const hist=id=>state.history[id]||0;
 function recomputeDerived(){
   const h={},ld={};
@@ -480,7 +489,7 @@ function buildPlan(dateStr,presentArr){
   while(remaining.length && guard++<200){
     let idx=remaining.findIndex(t=>!t.linkTo||done.has(t.linkTo)||!active.some(a=>a.id===t.linkTo)); if(idx<0)idx=0;
     const t=remaining.splice(idx,1)[0];
-    let pool=presentArr.slice(); if(t.requiresForklift)pool=pool.filter(id=>byId(id).forklift);
+    let pool=presentArr.slice(); if(t.requiresForklift)pool=pool.filter(hasLic);
     const chosen=[];
     if(t.primaryId && pool.includes(t.primaryId)) chosen.push(t.primaryId);
     if(t.linkTo && byTask[t.linkTo]) byTask[t.linkTo].forEach(pid=>{ if(chosen.length<t.people&&pool.includes(pid)&&!chosen.includes(pid))chosen.push(pid); });
@@ -494,7 +503,7 @@ function buildPlan(dateStr,presentArr){
 }
 function restingOf(p){ const busy=new Set(); p.items.forEach(it=>it.assignees.forEach(id=>{if(id)busy.add(id);})); return p.present.filter(id=>!busy.has(id)); }
 function autoFill(it,dateStr,exclude){
-  const pool=state.roster.map(p=>p.id).filter(id=>!exclude.has(id)&&availOn(dateStr,id)&&!it.assignees.includes(id)&&(!it.requiresForklift||byId(id).forklift));
+  const pool=state.roster.map(p=>p.id).filter(id=>!exclude.has(id)&&availOn(dateStr,id)&&!it.assignees.includes(id)&&(!it.requiresForklift||hasLic(id)));
   while(it.assignees.length<it.people && pool.length){ pool.sort((a,b)=>(hist(a)+recency(it.taskId,a,dateStr))-(hist(b)+recency(it.taskId,b,dateStr))); it.assignees.push(pool.shift()); }
   it.missing=it.people-it.assignees.length; it.substitute=!!(it.primaryId&&!it.assignees.includes(it.primaryId));
 }
@@ -587,7 +596,7 @@ function renderResult(){
       .concat(state.roster.map(p=>p.id).filter(id=>!availOn(plan.date,id)));
     for(let k=0;k<it.people;k++){ const cur=it.assignees[k]; const sel=el("select","who-select"+(cur==null?" empty":""));
       const none=el("option",null,"— brak —"); none.value=""; if(cur==null)none.selected=true; sel.appendChild(none);
-      pool.forEach(id=>{ if(it.requiresForklift&&!byId(id).forklift)return;
+      pool.forEach(id=>{ if(it.requiresForklift&&!hasLic(id))return;
         let label=byId(id).name+" · "+weekLoadOf(id,plan.date);
         if(!availOn(plan.date,id))label+=" · NIEOBECNY";
         const o=el("option",null,label); o.value=id; if(id===cur)o.selected=true; sel.appendChild(o); });
