@@ -1,4 +1,4 @@
-# Plan dyżurów · STREDA FT / SUB
+# Plan dyżurów · STREFA FT / SUB
 
 Aplikacja do układania harmonogramu sprzątania dla brygady. Jeden plik: `index.html`.
 
